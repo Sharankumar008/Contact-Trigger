@@ -1,0 +1,5 @@
+trigger ContactTrigger on Contact (after insert,after undelete,before delete) {
+ 
+    contactHandler obj=new contactHandler();
+    obj.doAction();
+}
