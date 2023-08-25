@@ -1,0 +1,99 @@
+public class ContactHandler{
+    List<Contact> triggerNew;
+    List<Contact> triggerOld;
+    Map<Id,Contact> triggerNewMap;
+    Map<Id,Contact> triggerOldMap;
+    
+    public ContactHandler(){
+        triggerNew=(List<Contact>)Trigger.new;
+        triggerOld=(List<Contact>)Trigger.old;
+        triggerNewMap=(Map<Id,Contact>)Trigger.newMap;
+        triggerOldMap=(Map<Id,Contact>)Trigger.oldMap;
+        
+    }
+    public void doAction(){
+        Switch on Trigger.operationType{
+            when BEFORE_INSERT{
+                
+            }
+            when AFTER_INSERT{
+                onAfterInsert();
+            }
+            when BEFORE_UPDATE{
+               
+            }
+            when AFTER_UPDATE{
+                
+            }
+            when BEFORE_DELETE{
+                onBeforeDelete();
+            }
+            when AFTER_DELETE{
+                
+            }
+            when AFTER_UNDELETE{
+                onAfterUnDelete();
+            }
+        }
+    }
+    public void onBeforeInsert(){
+        
+    }
+
+//When we Create a contact by checking contact relationship checkbox, 
+//then contact relationship will be created automatically for that contact
+
+    public void onAfterInsert(){
+        List<Contact_Relationship__c> conRelationList=new List<Contact_Relationship__c>();
+        for(Contact contactRecord:triggerNew){
+            if(contactRecord.Contact_Relationship__c==true){
+                Contact_Relationship__c conRelation=new Contact_Relationship__c(Contact_Relationship_Name__c=contactRecord.lastName+'con res',Contact_Name__c=contactRecord.id); 
+                conRelationList.add(conRelation);
+            }
+        }
+        //system.debug(conRelationList);
+        insert conRelationList;
+    }
+    public void onBeforeUpdate(){
+        
+    }
+    
+    public void onAfterUpdate(){
+        
+    }
+    
+//when we delete contact,
+//Contact relationship record should automatically deleted
+
+    public void onBeforeDelete(){
+        Set<Id> contactIds = new Set<Id>();
+        for (Contact con :triggerOld) {
+            contactIds.add(con.Id);
+        }
+        List<Contact_Relationship__c> conRelationList=[SELECT Id from Contact_Relationship__c where Contact_Name__c in :contactIds];
+        delete conRelationList;
+    }
+
+//when we undelete contact,
+//Contact relationship record should automatically restored
+
+    
+    public void onAfterUnDelete(){
+        
+        Set<Id> ConIds = new Set<Id>();        
+        for (Contact con : TriggerNew) {
+            ConIds.add(Con.Id);
+        }
+        //system.debug(ConIds);
+        
+        List<Contact_Relationship__c> relatedConRelationships = [
+            SELECT Id, Contact_Name__c
+            FROM Contact_Relationship__c ALL_ROWS
+            WHERE Contact_Name__c IN :ConIds and isDeleted=True
+        ];
+        
+        undelete relatedConRelationships;
+    }
+    
+    
+}
